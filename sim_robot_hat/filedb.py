@@ -32,9 +32,13 @@ class fileDB(object):
 		'''
 
 		self.db = db
+		self.owner = owner
 		# Check if db_file is existed, otherwise create one
 		if self.db != None:	
-			self.file_check_create(db, mode, owner)
+			if self.owner is not None:
+				self.file_check_create(db, mode, owner)
+			else:
+				print(f"Simulation Mode: Skipping file creation for {self.db}")
 		else:
 			raise ValueError('db: Missing file path parameter.')
 
@@ -86,28 +90,32 @@ class fileDB(object):
 		:return: the value of the arguement
 		:rtype: str
 		"""
-		try:
-			conf = open(self.db,'r')
-			lines=conf.readlines()
-			conf.close()
-			file_len=len(lines)-1
-			flag = False
-			# Find the arguement and set the value
-			for i in range(file_len):
-				if lines[i][0] != '#':
-					if lines[i].split('=')[0].strip() == name:
-						value = lines[i].split('=')[1].replace(' ', '').strip()
-						flag = True
-			if flag:
-				return value
-			else:
+		if self.owner is not None:
+			try:
+				conf = open(self.db,'r')
+				lines=conf.readlines()
+				conf.close()
+				file_len=len(lines)-1
+				flag = False
+				# Find the arguement and set the value
+				for i in range(file_len):
+					if lines[i][0] != '#':
+						if lines[i].split('=')[0].strip() == name:
+							value = lines[i].split('=')[1].replace(' ', '').strip()
+							flag = True
+				if flag:
+					return value
+				else:
+					return default_value
+			except FileNotFoundError:
+				conf = open(self.db,'w')
+				conf.write("")
+				conf.close()
 				return default_value
-		except FileNotFoundError:
-			conf = open(self.db,'w')
-			conf.write("")
-			conf.close()
-			return default_value
-		except :
+			except :
+				return default_value
+		else:
+			print(f"Simulation Mode: Skipping get operation for {name}")
 			return default_value
 	
 	def set(self, name, value):
@@ -119,27 +127,30 @@ class fileDB(object):
 		:param value: the value of the arguement
 		:type value: str
 		"""
-		# Read the file
-		conf = open(self.db,'r')
-		lines=conf.readlines()
-		conf.close()
-		file_len=len(lines)-1
-		flag = False
-		# Find the arguement and set the value
-		for i in range(file_len):
-			if lines[i][0] != '#':
-				if lines[i].split('=')[0].strip() == name:
-					lines[i] = '%s = %s\n' % (name, value)
-					flag = True
-		# If arguement does not exist, create one
-		if not flag:
-			lines.append('%s = %s\n\n' % (name, value))
+		if self.owner is not None:
+			# Read the file
+			conf = open(self.db,'r')
+			lines=conf.readlines()
+			conf.close()
+			file_len=len(lines)-1
+			flag = False
+			# Find the arguement and set the value
+			for i in range(file_len):
+				if lines[i][0] != '#':
+					if lines[i].split('=')[0].strip() == name:
+						lines[i] = '%s = %s\n' % (name, value)
+						flag = True
+			# If arguement does not exist, create one
+			if not flag:
+				lines.append('%s = %s\n\n' % (name, value))
 
-		# Save the file
-		conf = open(self.db,'w')
-		conf.writelines(lines)
-		conf.close()
-
+			# Save the file
+			conf = open(self.db,'w')
+			conf.writelines(lines)
+			conf.close()
+		else:
+			print(f"Simulation Mode: Skipping set operation for {name} = {value}")
+			pass
 if __name__ == '__main__':
     db = fileDB('/opt/robot-hat/test2.config')
 

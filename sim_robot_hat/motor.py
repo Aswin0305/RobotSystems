@@ -4,6 +4,10 @@ from .pwm import PWM
 from .pin import Pin
 from .filedb import fileDB
 
+User = None
+Userhome = None
+config_file = None
+
 class Motor():
     """Motor"""
     PERIOD = 4095
@@ -125,7 +129,8 @@ class Motors(_Basic_class):
     MOTOR_1_DIR_PIN = "D4"
     MOTOR_2_PWM_PIN = "P12"
     MOTOR_2_DIR_PIN = "D5"
-    config_file = "/opt/robot_hat/default_motors.config"
+    # config_file = "/opt/robot_hat/default_motors.config"
+    config_file = config_file 
     def __init__(self, db=config_file, *args, **kwargs):
         """
         Initialize motors with robot_hat.motor.Motor
